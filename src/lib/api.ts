@@ -1,7 +1,6 @@
 import { Script, CreateScriptRequest, UpdateScriptRequest } from '@/types/script';
 
-// IMPORTANTE: Adicione a URL da API aqui quando disponível
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = 'https://api-support-digio-uber-crud.onrender.com'; // por enquanto
 const API_PATH = '/digio.com.br/api/v1';
 
 export class ApiError extends Error {
