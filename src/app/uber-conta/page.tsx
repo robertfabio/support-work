@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { getScriptsByCategory } from '@/lib/api';
+import { Script } from '@/types/script';
 
 const scripts = [
   {
@@ -119,6 +121,22 @@ const scripts = [
 
 export default function UberContaScripts() {
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
+  const [apiScripts, setApiScripts] = useState<Script[]>([]);
+  const [useApi, setUseApi] = useState(false);
+
+  useEffect(() => {
+    // Tentar carregar da API (categoria 2 = Uber Conta)
+    getScriptsByCategory(2)
+      .then(data => {
+        if (data && data.length > 0) {
+          setApiScripts(data);
+          setUseApi(true);
+        }
+      })
+      .catch(() => {
+        setUseApi(false);
+      });
+  }, []);
 
   const copyToClipboard = (text: string, index: string) => {
     navigator.clipboard.writeText(text);
@@ -135,9 +153,35 @@ export default function UberContaScripts() {
       <h1>Scripts Uber Conta</h1>
       <p style={{ marginBottom: '1.5rem', fontSize: '0.85rem', opacity: 0.8 }}>
         Clique em qualquer script para copiar
+        {useApi && <span style={{ marginLeft: '0.5rem', color: '#0f0' }}>● API Conectada</span>}
       </p>
 
-      {scripts.map((section, sectionIndex) => (
+      {useApi && apiScripts.length > 0 ? (
+        <>
+          <div className="category">Scripts do Banco de Dados</div>
+          {apiScripts.map((script) => (
+            <div
+              key={script.id}
+              className="script-box"
+              onClick={() => copyToClipboard(script.content, `api-${script.id}`)}
+            >
+              <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
+                {script.name}
+                {copiedIndex === `api-${script.id}` && (
+                  <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem' }}>✓ COPIADO</span>
+                )}
+              </div>
+              <div style={{ opacity: 0.6, fontSize: '0.75rem', marginBottom: '0.25rem' }}>
+                {script.description}
+              </div>
+              <div style={{ opacity: 0.7, fontSize: '0.8rem' }}>
+                {script.content}
+              </div>
+            </div>
+          ))}
+        </>
+      ) : (
+        scripts.map((section, sectionIndex) => (
         <div key={sectionIndex}>
           <div className="category">{section.category}</div>
           {section.items.map((item, itemIndex) => {
@@ -161,7 +205,8 @@ export default function UberContaScripts() {
             );
           })}
         </div>
-      ))}
+      ))
+      )}
     </div>
   );
 }
